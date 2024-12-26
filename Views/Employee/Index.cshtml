@@ -1,0 +1,40 @@
+﻿@*@model HRManagment.Models.Employee*@
+@model List<Employee>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">First</th>
+            <th scope="col">Last</th>
+            <th scope="col">Position</th>
+            <th scope="col">Salary</th>
+            <th scope="col">Address</th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var emp in Model)
+        {
+            <tr>
+                <th scope="row">@emp.Id</th>
+                <td>@emp.FName</td>
+                <td>@emp.LName</td>
+                <td>@emp.Position</td>
+                <td>@emp.Salary</td>
+                <td>@emp.Address</td>
+                <td class="d-flex justify-content-center">
+                    <a asp-action="Details" asp-route-id="@emp.Id" class="btn btn-primary">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <a asp-action="AddEmployee" asp-route-id="">Add new employee</a> 
+</div>
