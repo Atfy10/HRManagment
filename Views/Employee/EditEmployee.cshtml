@@ -10,19 +10,24 @@
 <hr />
 <div class="row" style="display: flex; flex-direction:column; justify-content: center; align-items:center">
     <div class="col-md-4 w-75" style="display: flex; flex-direction:column; justify-content: center; align-items:center">
-        @*  asp-route-id="ViewBag.EmployeeId"  *@
+        <div class="text-danger">@TempData["ErrorMessage"]</div>
         <form asp-action="EditEmployee" class="text-secondary text-bg-light w-100">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input asp-for="Id" class="form-control" hidden/>
+            <input asp-for="Id" class="form-control" hidden />
             <div class="form-group">
                 <div class="input-group">
                     <label asp-for="FName" class="control-label input-group-text"></label>
-                    <input asp-for="FName" class="form-control"/>
+                    <input asp-for="FName" class="form-control" />
                     <span asp-validation-for="FName" class="text-danger"></span>
                     <label asp-for="LName" class="control-label input-group-text"></label>
                     <input asp-for="LName" class="form-control" />
                     <span asp-validation-for="LName" class="text-danger"></span>
                 </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="SSN" class="control-label"></label>
+                <input asp-for="SSN" class="form-control" />
+                <span asp-validation-for="SSN" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Email" class="control-label"></label>
@@ -38,9 +43,22 @@
                 </div>
             </div>
             <div class="form-group">
+                <label asp-for="EmergencyContact" class="control-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text">+20</span>
+                    <input asp-for="EmergencyContact" class="form-control" name="EmergencyContact" />
+                </div>
+                <span asp-validation-for="EmergencyContact" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="HireDate" class="control-label"></label>
-                <input asp-for="HireDate" class="form-control" disabled/>
+                <input asp-for="HireDate" class="form-control" disabled />
                 <span asp-validation-for="HireDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DateOfBirth" class="control-label"></label>
+                <input asp-for="DateOfBirth" class="form-control" name="DateOfBirth" />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Position" class="control-label"></label>
@@ -79,5 +97,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

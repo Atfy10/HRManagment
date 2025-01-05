@@ -1,7 +1,7 @@
 ﻿using HRManagment.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace HRManagment.ViewModels
+namespace HRManagment.Services
 {
     public class DropDownService
     {
@@ -30,6 +30,13 @@ namespace HRManagment.ViewModels
             {
                 Value = ((int)g).ToString(),
                 Text = g.ToString(),
+            }).ToList();
+
+        public List<SelectListItem> GetGovernorates() => Enum.GetValues<Governorate>()
+            .Select(g => new SelectListItem
+            {
+                Value = g.ToString(),
+                Text = g.ToString()
             }).ToList();
     }
 }

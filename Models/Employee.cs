@@ -1,5 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using HRManagment.Validation;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HRManagment.Models
 {
@@ -7,6 +10,10 @@ namespace HRManagment.Models
     {
         [Key]
         public int Id { get; set; }
+
+        [Required]
+        [Length(14, 14)]
+        public string SSN { get; set; }
 
         [Required]
         [StringLength(50)]
@@ -24,6 +31,7 @@ namespace HRManagment.Models
         [Phone]
         public string Phone { get; set; }
 
+        [DataType(DataType.Date)]
         public DateTime? HireDate { get; set; }
 
         public string Position { get; set; }
@@ -36,12 +44,22 @@ namespace HRManagment.Models
 
         public GenderType Gender { get; set; }
 
+        [DataType(DataType.Date)]
+        public DateTime? DateOfBirth { get; set; }
+
+        [Required]
+        [Phone]
+        public string EmergencyContact { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
         [ForeignKey("Department")]
         public int? DepartmentId { get; set; }
 
         //Navigation Property
         public virtual Department Department { get; set; }
         public virtual ICollection<Attendance> Attendances { get; set; }
-        public virtual ICollection<LeaveRequest> LeaveRequests { get; set; }
+        public virtual ICollection<LeaveRequest> RequestedLeaveRequests { get; set; }
+        public virtual ICollection<LeaveRequest> ApprovededLeaveRequests { get; set; }
     }
 }

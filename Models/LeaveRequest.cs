@@ -8,6 +8,12 @@ namespace HRManagment.Models
         [Key]
         public int Id { get; set; }
 
+        [DataType(DataType.Date)]
+        public DateTime RequestDate { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime ApprovalDate { get; set; }
+
         [Required]
         public DateOnly StartDate { get; set; }
 
@@ -24,12 +30,18 @@ namespace HRManagment.Models
         [StringLength(200)]
         public string? Reason { get; set; }
 
+        public string? Comments { get; set; }
+
         [Required]
-        [ForeignKey("Employee")]
+        [ForeignKey("RequestingEmployee")]
         public int EmployeeId { get; set; }
 
+        [ForeignKey("ApprovingEmployee")]
+        public int? ApprovedById { get; set; }
+
         //Navigation Property
-        public virtual Employee Employee { get; set; }
+        public virtual Employee RequestingEmployee { get; set; }
+        public virtual Employee ApprovingEmployee { get; set; }
 
     }
 }

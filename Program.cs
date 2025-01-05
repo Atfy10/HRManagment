@@ -4,12 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using AutoMapper;
 using HRManagment.ViewModels;
+using HRManagment.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container.
 builder.Services.AddScoped<DropDownService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeServices>();
+builder.Services.AddScoped<IEmployeeValidationService, EmployeeValidationService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 

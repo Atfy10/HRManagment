@@ -33,11 +33,18 @@ namespace HRManagment.Models
 
             // Fluent API configuration for any additional requirements
             modelBuilder.Entity<Employee>()
-                .Property(e => e.Email)
-                ;
-            modelBuilder.Entity<Employee>()
                 .Property(e => e.Salary)
                 .HasPrecision(18, 3);
+
+
+            modelBuilder.Entity<Employee>()
+                .HasIndex(e => e.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<Employee>()
+                .HasIndex(e => e.SSN)
+                .IsUnique()
+                .HasFilter("[SSN] IS NOT NULL");
 
             // Employee-Department Relationship
             modelBuilder.Entity<Employee>()
@@ -58,7 +65,7 @@ namespace HRManagment.Models
                 .HasOne(u => u.Role)
                 .WithMany(r => r.Users)
                 .HasForeignKey(u => u.RoleId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // User-Employee Relationship
             modelBuilder.Entity<User>()
@@ -73,13 +80,19 @@ namespace HRManagment.Models
                 .WithMany(e => e.Attendances)
                 .HasForeignKey(a => a.EmployeeId)
                 .OnDelete(DeleteBehavior.Cascade);
-
+            
             // LeaveRequest-Employee Relationship
             modelBuilder.Entity<LeaveRequest>()
-                .HasOne(l => l.Employee)
-                .WithMany(e => e.LeaveRequests)
+                .HasOne(l => l.RequestingEmployee)
+                .WithMany(e => e.RequestedLeaveRequests)
                 .HasForeignKey(l => l.EmployeeId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<LeaveRequest>()
+                .HasOne(l => l.ApprovingEmployee)
+                .WithMany(e => e.ApprovededLeaveRequests)
+                .HasForeignKey(l => l.ApprovedById)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // AuditLogs-User Relationship
             modelBuilder.Entity<AuditLog>()

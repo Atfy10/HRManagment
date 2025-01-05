@@ -11,14 +11,16 @@ namespace HRManagment.Mappings
 
             // EmployeeViewModel --> Employee
             CreateMap<EmployeeViewModel, Employee>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore());
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForAllMembers(opt =>
+                opt.Condition((src, dest, srcMember) => srcMember != null));
 
             // Employee --> EmployeeViewModel
-            CreateMap<Employee, EmployeeViewModel>()
-                .ForMember(dest => dest.Departments, opt => opt.Ignore())
-                .ForMember(dest => dest.Genders, opt => opt.Ignore())
-                .ForMember(dest => dest.Positions, opt => opt.Ignore());
-                
+            CreateMap<Employee, EmployeeViewModel>();
+
+            // EmployeeFormViewModel --> EmployeeViewModel
+            //CreateMap<EmployeeFormViewModel, EmployeeViewModel>();
+
         }
     }
 }

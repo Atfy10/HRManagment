@@ -1,8 +1,11 @@
 ﻿@*@model HRManagment.Models.Employee*@
-@model List<Employee>
-
+@* @model List<Employee>
+ *@
 @{
     ViewData["Title"] = "Index";
+    int CurrentPage = 1;
+    int TotalPages = (int)Math.Ceiling(10 / (double)10);
+    int PageSize = 10;
 }
 
 
@@ -38,3 +41,13 @@
 <div>
     <a asp-action="AddEmployee" asp-route-id="">Add new employee</a> 
 </div>
+<nav>
+    <ul class="pagination">
+        @for (int i = 1; i <= TotalPages; i++)
+        {
+            <li class="page-item @(i == CurrentPage ? "active" : "")">
+                <a class="page-link" href="@Url.Action("Index"@* , new { page = i } *@)">@i</a>
+            </li>
+        }
+    </ul>
+</nav>

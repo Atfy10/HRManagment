@@ -18,6 +18,14 @@ namespace HRManagment.Models
         public DateTime ChangedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
+        public string OldValue { get; set; }
+
+        [Required]
+        public string NewValue { get; set; }
+
+        public string PrimaryKeyValue { get; set; }
+
+        [Required]
         [ForeignKey("ChangedByUser")]
         public int ChangedBy { get; set; }
 

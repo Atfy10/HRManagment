@@ -2,12 +2,6 @@
 
 @{
     ViewData["Title"] = "AddEmployee";
-    var positionList = new List<string>
-    {
-        "Manager",
-        "HR",
-        "Developer"
-    };
 }
 
 <h1>AddEmployee</h1>
@@ -17,6 +11,7 @@
 <div class="row" style="display: flex; flex-direction:column; justify-content: center; align-items:center">
     <div class="col-md-4 w-75" style="display: flex; flex-direction:column; justify-content: center; align-items:center">
         <form asp-action="AddEmployee" class="text-secondary text-bg-light w-100">
+            <div class="text-danger">@TempData["ErrorMessage"]</div>
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <div class="input-group">
@@ -31,7 +26,12 @@
             <div class="form-group">
                 <label asp-for="Email" class="control-label"></label>
                 <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+                <span asp-validation-for="Email" class="text-danger">@*TempData["ErrorMessage"]*@</span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SSN" class="control-label"></label>
+                <input asp-for="SSN" class="form-control" />
+                <span asp-validation-for="SSN" class="text-danger">@*TempData["ErrorMessage"]*@</span>
             </div>
             <div class="form-group">
                 <label asp-for="Phone" class="control-label"></label>
@@ -42,9 +42,22 @@
                 <span asp-validation-for="Phone" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="EmergencyContact" class="control-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text">+20</span>
+                    <input asp-for="EmergencyContact" class="form-control" name="EmergencyContact" />
+                </div>
+                <span asp-validation-for="EmergencyContact" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="HireDate" class="control-label"></label>
-                <input asp-for="HireDate" class="form-control" />
+                <input asp-for="HireDate" class="form-control"/>
                 <span asp-validation-for="HireDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DateOfBirth" class="control-label"></label>
+                <input asp-for="DateOfBirth" class="form-control" name="DateOfBirth" />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Position" class="control-label"></label>
@@ -58,7 +71,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" class="form-control" />
+                <select asp-for="Address" asp-items="Model.Governorates" class="form-control"></select>
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
             <div class="form-group">

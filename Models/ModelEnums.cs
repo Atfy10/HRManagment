@@ -1,5 +1,16 @@
 ﻿namespace HRManagment.Models
 {
+    public enum Governorate
+    {
+        Cairo,
+        Alexandria,
+        Mansoura,
+        Menoufia,
+        Tanta,
+        Asyut,
+        Benha
+    }
+
     public enum GenderType
     {
         Male,
@@ -19,9 +30,13 @@
     }
     public enum AuditLogAction
     {
+        General,
         Add,
-        Remove,
-        Modify
+        Update,
+        Delete,
+        Display,
+        Get,
+        Set
     }
     public enum AttendanceStatus
     {
@@ -36,6 +51,8 @@
         Secratry,
         Leader,
         SEO,
+        SeniorDesigner,
+        JuniorDesigner,
         SeniorDeveloper,
         JuniorDeveloper,
         Employee,
