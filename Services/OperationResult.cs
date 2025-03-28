@@ -7,6 +7,7 @@ namespace HRManagment.Services
         public AuditLogAction Operation { get; set; }
         public bool Success { get; set; }
         public T Data { get; set; }
+        public T OldData { get; set; }
         public string Message { get; set; }
         public List<string> Errors { get; set; } = new();
     }

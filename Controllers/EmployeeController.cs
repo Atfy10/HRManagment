@@ -6,26 +6,32 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using AutoMapper;
 using HRManagment.Services;
+using Azure.Core;
+using System.Globalization;
 namespace HRManagment.Controllers
 {
     public class EmployeeController(IMapper mapper,
         ILogger<EmployeeController> logger,
-        IEmployeeService employeeService) : Controller
+        IEmployeeService employeeService,
+        IAuditLogService auditLogService) : Controller
     {
         readonly IEmployeeService _employeeService = employeeService;
+        readonly IAuditLogService _auditLogService = auditLogService;
         readonly IMapper _mapper = mapper;
         readonly ILogger<EmployeeController> _logger = logger;
 
-        public async Task<IActionResult> Index()
+        [HttpGet]
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var employees = await _employeeService.GetEmployeesAsync();
+            ViewBag.Page = page;
+            (var employees, var employeesCount) = await _employeeService.GetEmployeesAsync(pageNumber: page);
+            ViewBag.Emps = employeesCount;
             return View(employees);
         }
 
         public async Task<IActionResult> Details(int id)
         {
             var operationResult = await _employeeService.GetEmployeeByIdAsync(id);
-
             //will use cookies for temp message for user and redirect back
             if (!operationResult.Success)
                 return NotFound();
@@ -42,8 +48,12 @@ namespace HRManagment.Controllers
             return View(viewModel);
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddEmployee(EmployeeViewModel viewModel)
         {
+
+            await _auditLogService.SubscribeToOperationEvent();
+
             // not the best case and must replace with one
             ModelState.Remove(nameof(viewModel.Governorates));
             ModelState.Remove(nameof(viewModel.Positions));
@@ -61,12 +71,6 @@ namespace HRManagment.Controllers
             }
 
             TempData["ErrorMessage"] = operationResult.Message;
-            _employeeService.PopulateDropDownLists(viewModel);
-            return View("AddEmployee", viewModel);
-
-
-            //will use cookies to show temp message for user and redirect back
-            //use validate messages
             _employeeService.PopulateDropDownLists(viewModel);
             return View("AddEmployee", viewModel);
         }
@@ -90,6 +94,8 @@ namespace HRManagment.Controllers
         [HttpPost]
         public async Task<IActionResult> EditEmployee(EmployeeViewModel viewModel)
         {
+            await _auditLogService.SubscribeToOperationEvent();
+
             // not the best case and must replace with one
             ModelState.Remove(nameof(viewModel.Governorates));
             ModelState.Remove(nameof(viewModel.Positions));
@@ -105,10 +111,11 @@ namespace HRManagment.Controllers
                 if (operationResult.Success)
                 {
                     var employee = operationResult.Data;
+                    Employee oldEmp = Employee.Clone(operationResult.Data);
 
                     _mapper.Map(viewModel, employee);
-                    operationResult = await _employeeService.UpdateEmployeeAsync(employee);
-                   
+                    operationResult = await _employeeService.UpdateEmployeeAsync(employee, oldEmp);
+
                     if (operationResult.Success)
                         return RedirectToAction("Index");
                 }
@@ -122,6 +129,8 @@ namespace HRManagment.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
+            _auditLogService.SubscribeToOperationEvent();
+
             var operationResult = await _employeeService.DeleteEmployeeAsync(id);
 
             //will use cookies for temp message for user and redirect back
@@ -131,5 +140,22 @@ namespace HRManagment.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpGet]
+        public IActionResult positionSalary(string position)
+        {
+            object? intPosition;
+            if (Enum.TryParse(typeof(Position), position, true, out intPosition))
+            {
+                int maximumSalary = (int)intPosition switch
+                {
+                    (int)Position.Manager => 20000,
+                    (int)Position.Junior => 2000,
+                    _ => 3500
+                };
+
+                return Ok(maximumSalary);
+            }
+            return View("Error", new ErrorViewModel { RequestId = HttpContext.TraceIdentifier });
+        }
     }
 }

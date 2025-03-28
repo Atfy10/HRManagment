@@ -22,7 +22,7 @@ namespace HRManagment.Services
             .Select(p => new SelectListItem
             {
                 Value = p.ToString(),
-                Text = p.ToString()
+                Text = p.GetDescription()
             }).ToList();
 
         public List<SelectListItem> GetGenders() => Enum.GetValues<GenderType>()

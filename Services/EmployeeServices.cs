@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HRManagment.Services
 {
+    public delegate void NewDbOperationEventHandler(object sender, AuditLog e);
+
     public class EmployeeServices(
         HRManagmentContext context,
         IMapper mapper,
@@ -14,6 +16,9 @@ namespace HRManagment.Services
         DropDownService dropDownService)
         : IEmployeeService
     {
+
+        public event NewDbOperationEventHandler DbChanged;
+
         //public enum CurrentOperation
         //{
         //    General,
@@ -24,19 +29,26 @@ namespace HRManagment.Services
         //}
 
         readonly HRManagmentContext _context = context;
-        //readonly IMapper _mapper = mapper;
+        readonly IMapper _mapper = mapper;
         readonly ILogger<EmployeeServices> _logger = logger;
         readonly DropDownService _dropDownService = dropDownService;
         readonly IEmployeeValidationService _validationService = validationService;
-        async Task<OperationResult<T>> ExecuteOperationAsync<T>(AuditLogAction currentOp, Func<AuditLogAction, Task<OperationResult<T>>> action)
+        async Task<OperationResult<Employee>> ExecuteOperationAsync(AuditLogAction currentOp, Func<AuditLogAction, Task<OperationResult<Employee>>> action)
         {
             try
             {
-                var result = await action(currentOp);
+                OperationResult<Employee> result = await action(currentOp);
                 result.Operation = currentOp;
                 if (result.Success)
                 {
                     _logger.LogInformation("Operation {Operation} has done succefully", currentOp);
+
+                    if (currentOp is not AuditLogAction.Get)
+                    {
+                        //OperationResult<Employee> employee = new OperationResult<Employee>();
+                        AuditLog newOperation = PopulateNewOperation(result, currentOp);
+                        DbChanged?.Invoke(this, newOperation);
+                    }
                 }
                 else
                 {
@@ -47,8 +59,8 @@ namespace HRManagment.Services
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Database {Operation} failed", currentOp);
-                //throw new EmployeeOperationException($"Failed to {currentOp} employee", ex);
-                return new OperationResult<T>
+
+                return new OperationResult<Employee>
                 {
                     Success = false,
                     Message = $"Database error: {ex.Message}"
@@ -57,8 +69,8 @@ namespace HRManagment.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Operation {Operation} failed unexceptedly", currentOp);
-                //throw new EmployeeOperationException($"Unexcepected error during {currentOp} employee", ex);
-                return new OperationResult<T>
+
+                return new OperationResult<Employee>
                 {
                     Success = false,
                     Message = $"Unexpected error: {ex.Message}, {ex.InnerException}"
@@ -67,11 +79,11 @@ namespace HRManagment.Services
             }
         }
 
-        public async Task<List<Employee>> GetEmployeesAsync(
+        public async Task<(List<Employee>, int)> GetEmployeesAsync(
             int pageNumber = 1,
             int pageSize = 10,
-            string searchTerm = null,
-            string sortBy = null,
+            string? searchTerm = null,
+            string? sortBy = null,
             bool ascending = true)
         {
 
@@ -101,7 +113,7 @@ namespace HRManagment.Services
             .Take(pageSize)
             .ToListAsync();
 
-            return employees;
+            return (employees, pagesTotalCount);
         }
 
 
@@ -138,10 +150,10 @@ namespace HRManagment.Services
         {
             return await ExecuteOperationAsync(AuditLogAction.Add, async (currentOp) =>
             {
+                #region Validation Section
 
                 /*********  Validation Section *********/
-
-                if (!await _validationService.IsEmailUniqueAsync(employee.Email))
+                if (!_validationService.IsEmailValid(employee.Email))
                 {
                     return new OperationResult<Employee>
                     {
@@ -158,9 +170,8 @@ namespace HRManagment.Services
                         Message = $"SSN: {employee.SSN} is not valid or is exist"
                     };
                 }
-                //
-                //
-                //
+
+                #endregion
 
                 await _context.Employees.AddAsync(employee);
                 await _context.SaveChangesAsync();
@@ -168,6 +179,7 @@ namespace HRManagment.Services
                 {
                     Success = true,
                     Data = employee,
+                    OldData = new Employee(),
                     Message = "Employee added succefully"
                 };
 
@@ -175,24 +187,21 @@ namespace HRManagment.Services
 
         }
 
-        public async Task<OperationResult<Employee>> UpdateEmployeeAsync(Employee employee)
+        public async Task<OperationResult<Employee>> UpdateEmployeeAsync(Employee employee, Employee oldEmployee)
         {
             return await ExecuteOperationAsync(AuditLogAction.Update, async (currentOp) =>
             {
-
+                #region Validation Section
                 /*********  Validation Section *********/
-
-                if (!_validationService.IsValidSSN(employee.SSN,
-                    employee.DateOfBirth ?? DateTime.Today, employee.Address ?? "Cairo",
-                    employee.Id))
+                if (employee.SSN != oldEmployee.SSN)
                 {
                     return new OperationResult<Employee>
                     {
                         Success = false,
-                        Message = $"SSN: {employee.SSN} is not valid or is exist"
+                        Message = $"SSN: {employee.SSN} is not valid because it changed"
                     };
                 }
-                if (!await _validationService.IsEmailUniqueAsync(employee.Email, employee.Id))
+                if (!_validationService.IsEmailValid(employee.Email, employee.Id))
                 {
                     return new OperationResult<Employee>
                     {
@@ -200,15 +209,15 @@ namespace HRManagment.Services
                         Message = $"Email: {employee.Email} is already exist"
                     };
                 }
-                //
-                //
-                //
+
+                #endregion
 
                 _context.Employees.Update(employee);
                 await _context.SaveChangesAsync();
                 return new OperationResult<Employee>
                 {
                     Success = true,
+                    OldData = oldEmployee,
                     Data = employee,
                     Message = "Employee data was updated successfully"
                 };
@@ -240,7 +249,7 @@ namespace HRManagment.Services
                 return new OperationResult<Employee>
                 {
                     Success = true,
-                    Data = employee,
+                    OldData = employee,
                     Message = "Employee data was deleted successfully"
                 };
 
@@ -264,10 +273,38 @@ namespace HRManagment.Services
             viewModel.Genders = _dropDownService.GetGenders();
         }
 
+        AuditLog SetAuditLogInfo(int userId, AuditLogAction currentOp,
+            Employee newEmployee, Employee oldEmployee)
+        {
+            string newValue = newEmployee - oldEmployee;
+            return new AuditLog
+            {
+                Action = currentOp,
+                NewValue = newValue ?? string.Empty,
+                OldValue = oldEmployee?.ToString() ?? "No data",
+                TableName = "Employees",
+                ChangedAt = DateTime.Now,
+                ChangedBy = userId,
+                PrimaryKeyValue = newEmployee?.Id.ToString() ?? oldEmployee?.Id.ToString(),
+            };
+        }
+
+        private AuditLog PopulateNewOperation(OperationResult<Employee> result,
+                                AuditLogAction currentOp) //where T : Employee
+            => currentOp switch
+            {
+                AuditLogAction.Add =>
+                    SetAuditLogInfo(1, currentOp, result.Data, null),
+                AuditLogAction.Update =>
+                    SetAuditLogInfo(1, currentOp, result.Data, result?.OldData),
+                AuditLogAction.Delete =>
+                    SetAuditLogInfo(1, currentOp, null, result.OldData),
+                _ => new AuditLog()
+                {
+                    Action = currentOp
+                }
+            };
+
     }
 
-
-
-}
-
-;
+};

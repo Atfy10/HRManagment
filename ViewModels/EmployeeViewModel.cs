@@ -11,7 +11,7 @@ using HRManagment.Validation;
 namespace HRManagment.ViewModels
 {
     [Bind("Id,FName,LName,SSN,EmergencyContact,Email,Phone,HireDate,DateOfBirth,Position,Salary,Address,Gender,DepartmentId")]
-    public class EmployeeViewModel /*: IValidatableObject*/
+    public class EmployeeViewModel
     {
         [AllowNull]
         public int Id { get; set; }
@@ -48,7 +48,7 @@ namespace HRManagment.ViewModels
         [DataType(DataType.Date)]
         public DateTime? HireDate { get; set; }
 
-        public Position Position { get; set; }
+        public string Position { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Salary must be a positive number")]
         public decimal? Salary { get; set; }

@@ -3,8 +3,8 @@
  *@
 @{
     ViewData["Title"] = "Index";
-    int CurrentPage = 1;
-    int TotalPages = (int)Math.Ceiling(10 / (double)10);
+    int CurrentPage = ViewBag.Page;
+    int TotalPages = (int)Math.Ceiling(ViewBag.Emps / (double)10);
     int PageSize = 10;
 }
 
@@ -46,7 +46,7 @@
         @for (int i = 1; i <= TotalPages; i++)
         {
             <li class="page-item @(i == CurrentPage ? "active" : "")">
-                <a class="page-link" href="@Url.Action("Index"@* , new { page = i } *@)">@i</a>
+                <a class="page-link" href="@Url.Action("Index" , new { page = i } )">@i</a>
             </li>
         }
     </ul>

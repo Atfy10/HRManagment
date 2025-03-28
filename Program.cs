@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddScoped<DropDownService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeServices>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IEmployeeValidationService, EmployeeValidationService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -21,6 +22,10 @@ builder.Logging.AddDebug();
 builder.Logging.AddConsole();
 
 builder.Services.AddControllersWithViews();
+    //.AddJsonOptions(options =>
+    //{
+    //    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    //});
 builder.Services.AddDbContext<HRManagmentContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
